@@ -8,7 +8,18 @@ function Scope() {
   this.$$phase = null;
   this.$$lastDirtyWatch = null;
   this.$$applyAsyncId = null;
+  this.$$children = [];
 }
+
+Scope.prototype.$new = function() { 
+  var ChildScope = function() { }; 
+  ChildScope.prototype = this; 
+  var child = new ChildScope(); 
+  child.$$watchers = []; 
+  this.$$children.push(child);
+  child.$$children = [];
+  return child; 
+};
 
 function initWatchVal() { }
 
@@ -114,6 +125,16 @@ Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
       (typeof newValue === 'number' && typeof oldValue === 'number' &&
        isNaN(newValue) && isNaN(oldValue));
   }
+};
+
+Scope.prototype.$$everyScope = function(fn) { 
+  if (fn(this)) { 
+    return this.$$children.every(function(child) { 
+      return child.$$everyScope(fn); 
+    }); 
+  } else { 
+    return false; 
+  } 
 };
 
 Scope.prototype.$$digestOnce = function() {
