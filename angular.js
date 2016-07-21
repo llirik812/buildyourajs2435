@@ -5,7 +5,7 @@ function Scope() {
   this.$$asyncQueue = [];
   this.$$applyAsyncQueue = [];
   this.$$postDigestQueue = [];
-  this.$$phase = null;
+  this.$$phase = null; // на фазу смотрит насколько я помню пока только $evalAsync
   this.$$lastDirtyWatch = null;
   this.$$applyAsyncId = null;
   this.$$children = [];
@@ -98,8 +98,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 
 
 Scope.prototype.$applyAsync = function(expr) { 
-
-    var self = this; 
+    var self = this;
     self.$$applyAsyncQueue.push(function() { 
         self.$eval(expr); 
     }); 
@@ -128,7 +127,7 @@ Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
 };
 
 Scope.prototype.$$everyScope = function(fn) { 
-  if (fn(this)) { 
+  if (fn(this)) {
     return this.$$children.every(function(child) { 
       return child.$$everyScope(fn); 
     }); 
@@ -138,25 +137,33 @@ Scope.prototype.$$everyScope = function(fn) {
 };
 
 Scope.prototype.$$digestOnce = function() {
-  var self  = this;
   var dirty;
-  _.forEach(this.$$watchers, function(watch) {
-    try {
-      var newValue = watch.watchFn(self);
-      var oldValue = watch.last;
-      if (!self.$$areEqual(newValue, oldValue, watch.valueEq)) {
-        self.$$lastDirtyWatch = watcher;
-        watcher.listenerFn(newValue, 
-             (oldValue === initWatchVal ? newValue : oldValue),
-              self);
-        dirty = true;
-      } else if (self.$$lastDirtyWatch === watcher) { 
-         return false; 
+  var continueLoop = true;
+  var self = this;
+  this.$$everyScope(function(scope) {
+    var newValue, oldValue;
+    _.forEachRight(scope.$$watchers, function(watcher) {
+      try {
+        if (watcher) {
+          newValue = watcher.watchFn(scope);
+          oldValue = watcher.last;
+          if (!scope.$$areEqual(newValue, oldValue, watcher.valueEq)) {
+            self.$$lastDirtyWatch = watcher;
+            watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
+            watcher.listenerFn(newValue,
+                (oldValue === initWatchVal ? newValue : oldValue),
+                scope);
+            dirty = true;
+          } else if (self.$$lastDirtyWatch === watcher) {
+            continueLoop = false;
+            return false;
+          }
+        }
+      } catch (e) {
+        console.error(e);
       }
-      watch.last = (watch.valueEq ? _.cloneDeep(newValue) : newValue);
-    } catch (e) {
-      (console.error || console.log)(e);
-    }
+    });
+    return continueLoop;
   });
   return dirty;
 };
