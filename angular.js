@@ -15,7 +15,7 @@ function Scope() {
   this.$$asyncQueue = [];
   this.$$applyAsyncQueue = [];
   this.$$postDigestQueue = [];
-  this.$$phase = null; // на фазу смотрит насколько я помню пока только $evalAsync
+  this.$$phase = null; // only $evalAsync sets up phase currently
   this.$$lastDirtyWatch = null;
   this.$$applyAsyncId = null;
   this.$$children = [];
@@ -122,21 +122,31 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
   var self = this; 
   var newValue; 
   var oldValue; 
+  // Counter. Increments. If incremented, watcher`s listenerFn called then
   var changeCount = 0; 
   var oldLength;
   var internalWatchFn = function(scope) {
     var newLength;
-    newValue = watchFn(scope); 
+    newValue = watchFn(scope);
+    // Do we have an object here as new value?
     if (_.isObject(newValue)) { 
+      // Is this object is array-like (array, arguments or DOM) object?
       if (_.isArrayLike(newValue)) {
+        // What if this object has just become an array?
         if (!_.isArray(oldValue)) { 
-          changeCount++; 
+          changeCount++;
+	  // Will do compare new value to old as arrays...
           oldValue = []; 
         }
+ 	/* 
+	Now both of them has length attribute 
+        despite the fact that the old value could be plain object 
+        */
         if (newValue.length !== oldValue.length) { 
           changeCount++; 
           oldValue.length = newValue.length; 
         }
+        // Iterate over array alements to see if there any changes
         _.forEach(newValue, function(newItem, i) { 
           var bothNaN = _.isNaN(newItem) && _.isNaN(oldValue[i]); 
           if (!bothNaN && newItem !== oldValue[i]) {
@@ -144,14 +154,19 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
             oldValue[i] = newItem;
           }
         });
-      } else { 
+      } else /* object is plain object */ { 
+        // is previous value was completely different?
         if (!_.isObject(oldValue) || _.isArrayLike(oldValue)) { 
           changeCount++; 
           oldValue = {}; 
+          // simulate length property of an array 
+          // so we can operate with objects in arrays manner
           oldLength = 0;
         }
         newLength = 0;
+	// Iterate over all objects properties
         _.forOwn(newValue, function(newVal, key) { 
+	  // Lets count of how much properties this object has
           newLength++;
           if (oldValue.hasOwnProperty(key)) {
             var bothNaN = _.isNaN(newVal) && _.isNaN(oldValue[key]); 
@@ -165,6 +180,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
             oldValue[key] = newVal; 
           }
         });
+	// Do we have some property deleted?
         if (oldLength > newLength) { 
           changeCount++;
           _.forOwn(oldValue, function(oldVal, key) { 
