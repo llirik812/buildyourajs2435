@@ -57,6 +57,8 @@ Scope.prototype.$clearPhase = function() {
   this.$$phase = null;
 };
 
+/* If you want to run some function once per digest 
+   (actually per digestOnce) point out just watchFn here */
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
   var self = this;
   var watcher = {
