@@ -6,7 +6,8 @@ _.mixin({
       return false; 
     } 
     var length = obj.length; 
-    return _.isNumber(length); 
+    return length === 0 || 
+           (_.isNumber(length) && length > 0 && (length -1) in obj);
   } 
 });
 
@@ -125,6 +126,9 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
   // Counter. Increments. If incremented, watcher`s listenerFn called then
   var changeCount = 0; 
   var oldLength;
+  var veryOldValue; 
+  var trackVeryOldValue = (listenerFn.length > 1);
+  var firstRun = true;
   var internalWatchFn = function(scope) {
     var newLength;
     newValue = watchFn(scope);
@@ -201,8 +205,16 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
     return changeCount; 
   };
   var internalListenerFn = function() { 
-    listenerFn(newValue, oldValue, self); 
-  }; 
+    if (firstRun) { 
+      listenerFn(newValue, newValue, self); 
+      firstRun = false; 
+    } else { 
+      listenerFn(newValue, veryOldValue, self); 
+    }
+    if (trackVeryOldValue) { 
+      veryOldValue = _.clone(newValue); 
+    } 
+  };
   return this.$watch(internalWatchFn, internalListenerFn); 
 };
 
