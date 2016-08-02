@@ -25,6 +25,7 @@ Lexer.prototype.lex = function(text) {
             throw 'Unexpected next character: ' + this.ch;
         }
     }
+    return this.tokens;
 };
 
 Lexer.prototype.isNumber = function(ch) {
