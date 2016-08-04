@@ -24,6 +24,8 @@ Lexer.prototype.lex = function(text) {
             this.readNumber();
         } else if (this.ch === '\'' || this.ch === '"') { 
             this.readString();
+        } else if (this.ch === '\'' || this.ch === '"') { 
+            this.readString();
         } else {
             throw 'Unexpected next character: ' + this.ch;
         }
@@ -40,9 +42,9 @@ Lexer.prototype.isNumber = function(ch) {
     return '0' <= ch && ch <= '9';
 };
 
-Lexer.prototype.readNumber = function() {
-    var number = '';
-    while (this.index < this.text.length) {
+Lexer.prototype.readNumber = function() { 
+    var number = ''; 
+    while (this.index < this.text.length) { 
         var ch = this.text.charAt(this.index).toLowerCase(); 
         if (ch === '.' || this.isNumber(ch)) { 
             number += ch; 
@@ -51,20 +53,19 @@ Lexer.prototype.readNumber = function() {
             var prevCh = number.charAt(number.length -1); 
             if (ch === 'e' && this.isExpOperator(nextCh)) { 
                 number += ch; 
-            } else if (this.isExpOperator(ch) && prevCh === 'e' && 
-                       nextCh && this.isNumber(nextCh)) { 
-                       number += ch; 
-            } else if (this.isExpOperator(ch) && prevCh === 'e' && 
-                       (!nextCh || !this.isNumber(nextCh))) { 
-                       throw "Invalid exponent"; 
-            } else { break; } 
-        }
-        this.index++;
-    }
-    this.tokens.push({
-        text: number,
-        value: Number(number)
-    });
+            } else if (this.isExpOperator(ch) && prevCh === 'e'
+                       && nextCh && this.isNumber(nextCh)) { 
+                number += ch; 
+            } else if (this.isExpOperator(ch) && prevCh === 'e' 
+                       && (!nextCh || !this.isNumber(nextCh))) { 
+                throw "Invalid exponent"; 
+            } else { 
+                break; 
+            } 
+        } 
+        this.index++; 
+    } 
+    this.tokens.push({ text: number, value: Number(number) }); 
 };
 
 Lexer.prototype.readString = function() { 
