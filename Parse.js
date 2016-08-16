@@ -27,7 +27,7 @@ Lexer.prototype.lex = function(text) {
             this.readNumber();
         } else if (this.is('\'"')) { 
             this.readString(this.ch);
-        } else if (this.is('[],{}:.')) {
+        } else if (this.is('[],{}:.()')) {
             this.tokens.push({
                 text: this.ch
             });
@@ -352,7 +352,9 @@ ASTCompiler.prototype.recurse = function(ast) {
             intoId = this.nextId();
             var left = this.recurse(ast.object);
             if (ast.computed) {
-                
+                var right = this.recurse(ast.property);
+                this.if_(left, 
+                    this.assign(intoId, this.computedMember(left, right)));
             } else {
                 this.if_(left,
                     this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
@@ -363,6 +365,10 @@ ASTCompiler.prototype.recurse = function(ast) {
 
 ASTCompiler.prototype.nonComputedMember = function(left, right) {
     return '(' + left + ').' + right;
+};
+
+ASTCompiler.prototype.computedMember = function(left, right) { 
+    return '(' + left + ')[' + right + ']';
 };
 
 ASTCompiler.prototype.assign = function(id, value) {
