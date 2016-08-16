@@ -334,10 +334,6 @@ ASTCompiler.prototype.recurse = function(ast) {
     }
 };
 
-ASTCompiler.prototype.assign = function(id, value) {
-    return id + '=' + value + ';';
-};
-
 ASTCompiler.prototype.nonComputedMember = function(left, right) {
     return '(' + left + ').' + right;
 };
