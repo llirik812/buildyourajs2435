@@ -47,11 +47,6 @@ Lexer.prototype.is = function(chs) {
     return chs.indexOf(this.ch) >= 0; 
 };
 
-Lexer.prototype.peek = function() { 
-    return this.index < this.text.length -1 ? 
-        this.text.charAt(this.index + 1) : false; 
-};
-
 Lexer.prototype.isNumber = function(ch) {
     return '0' <= ch && ch <= '9';
 };
@@ -59,6 +54,20 @@ Lexer.prototype.isNumber = function(ch) {
 Lexer.prototype.isIdent = function(ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
     ch === '_' || ch === '$';
+};
+
+Lexer.prototype.isExpOperator = function(ch) { 
+    return ch === '-' || ch === '+' || this.isNumber(ch); 
+};
+
+Lexer.prototype.isWhitespace = function(ch) {
+    return ch === ' ' || ch === '\r' || ch === '\t' ||
+    ch === '\n' || ch === '\v' || ch === '\u00A0';
+};
+
+Lexer.prototype.peek = function() { 
+    return this.index < this.text.length -1 ? 
+        this.text.charAt(this.index + 1) : false; 
 };
 
 Lexer.prototype.readNumber = function() { 
@@ -143,15 +152,6 @@ Lexer.prototype.readIdent = function() {
         identifier: true
     };
     this.tokens.push(token);
-};
-
-Lexer.prototype.isExpOperator = function(ch) { 
-    return ch === '-' || ch === '+' || this.isNumber(ch); 
-};
-
-Lexer.prototype.isWhitespace = function(ch) {
-    return ch === ' ' || ch === '\r' || ch === '\t' ||
-    ch === '\n' || ch === '\v' || ch === '\u00A0';
 };
 
 /* ========== AST ============*/
