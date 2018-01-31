@@ -29,7 +29,6 @@ function setupModuleLoader(window) {
 			requires: requires,
 			constant: invokeLater('constant'),
 			provider: invokeLater('provider'),
-			},
 			_invokeQueue: invokeQueue
 		};
 		modules[name] = moduleInstance;
