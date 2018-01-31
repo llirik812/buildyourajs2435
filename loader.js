@@ -28,7 +28,7 @@ function setupModuleLoader(window) {
 			name: name,
 			requires: requires,
 			constant: invokeLater('constant'),
-			provider: invokeLate('provider'),
+			provider: invokeLater('provider'),
 			},
 			_invokeQueue: invokeQueue
 		};
